@@ -28,17 +28,56 @@
         "reproto",
         "json"
     ],
+    "activationEvents": [
+        "onLanguage:reproto",
+        "workspaceContains:reproto.toml"
+    ],
+    "main": "./out/extension",
     "contributes": {
-        "languages": [{
-            "id": "reproto",
-            "aliases": ["Reproto", "reproto"],
-            "extensions": [".reproto"],
-            "configuration": "./language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "reproto",
-            "scopeName": "source.reproto",
-            "path": "./syntaxes/reproto.tmLanguage.json"
-        }]
+        "languages": [
+            {
+                "id": "reproto",
+                "aliases": [
+                    "Reproto",
+                    "reproto"
+                ],
+                "extensions": [
+                    ".reproto"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "reproto",
+                "scopeName": "source.reproto",
+                "path": "./syntaxes/reproto.tmLanguage.json"
+            }
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "reproto language support configuration",
+            "properties": {
+                "reproto.executable": {
+                    "type": "string",
+                    "default": "reproto",
+                    "description": "reproto command or path to executable"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "typescript": "^2.6.1",
+        "vscode": "^1.1.6",
+        "tslint": "^5.8.0",
+        "@types/node": "^7.0.43",
+        "@types/mocha": "^2.2.42"
     }
 }
