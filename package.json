@@ -18,7 +18,7 @@
         "url": "https://github.com/reproto/reproto-vscode/issues"
     },
     "engines": {
-        "vscode": "^1.22.0"
+        "vscode": "^1.18.1"
     },
     "categories": [
         "Themes",
