@@ -1,0 +1,44 @@
+{
+    "name": "reproto",
+    "displayName": "reproto",
+    "description": "Language support for reproto",
+    "version": "0.0.1",
+    "license": "MIT",
+    "publisher": "udoprog",
+    "icon": "icon.png",
+    "galleryBanner": {
+        "color": "#336356",
+        "theme": "dark"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/reproto/reproto-vscode"
+    },
+    "bugs": {
+        "url": "https://github.com/reproto/reproto-vscode/issues"
+    },
+    "engines": {
+        "vscode": "^1.22.0"
+    },
+    "categories": [
+        "Themes",
+        "Languages"
+    ],
+    "keywords": [
+        "reproto",
+        "json"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "reproto",
+            "aliases": ["Reproto", "reproto"],
+            "extensions": [".reproto"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "reproto",
+            "scopeName": "source.reproto",
+            "path": "./syntaxes/reproto.tmLanguage.json"
+        }]
+    }
+}

@@ -1,0 +1,179 @@
+{
+    "version": "2018.4",
+    "name": "reproto",
+    "scopeName": "source.reproto",
+    "patterns": [
+        {
+            "include": "#block_doc_comment"
+        },
+        {
+            "include": "#block_comment"
+        },
+        {
+            "include": "#line_doc_comment"
+        },
+        {
+            "include": "#line_comment"
+        },
+        {
+            "comment": "Attribute",
+            "name": "meta.attribute.reproto",
+            "begin": "#\\!?\\[",
+            "end": "\\]",
+            "patterns": [
+                {
+                    "include": "#string_literal"
+                },
+                {
+                    "include": "#block_doc_comment"
+                },
+                {
+                    "include": "#block_comment"
+                },
+                {
+                    "include": "#line_doc_comment"
+                },
+                {
+                    "include": "#line_comment"
+                }
+            ]
+        },
+        {
+            "comment": "Single-quote string literal (character)",
+            "name": "string.quoted.single.reproto",
+            "match": "b?'([^'\\\\]|\\\\(x[0-9A-Fa-f]{2}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.))'"
+        },
+        {
+            "include": "#string_literal"
+        },
+        {
+            "include": "#builtin_types"
+        },
+        {
+            "include": "#type"
+        },
+        {
+            "comment": "Floating point literal (fraction)",
+            "name": "constant.numeric.float.reproto",
+            "match": "\\b[0-9][0-9_]*\\.[0-9][0-9_]*([eE][+-]?[0-9_]+)?(f32|f64)?\\b"
+        },
+        {
+            "comment": "Floating point literal (exponent)",
+            "name": "constant.numeric.float.reproto",
+            "match": "\\b[0-9][0-9_]*(\\.[0-9][0-9_]*)?[eE][+-]?[0-9_]+(f32|f64)?\\b"
+        },
+        {
+            "comment": "Floating point literal (typed)",
+            "name": "constant.numeric.float.reproto",
+            "match": "\\b[0-9][0-9_]*(\\.[0-9][0-9_]*)?([eE][+-]?[0-9_]+)?(f32|f64)\\b"
+        },
+        {
+            "comment": "Integer literal (decimal)",
+            "name": "constant.numeric.integer.decimal.reproto",
+            "match": "\\b[0-9][0-9_]*([ui](8|16|32|64|128|s|size))?\\b"
+        },
+        {
+            "comment": "Integer literal (binary)",
+            "name": "constant.numeric.integer.binary.reproto",
+            "match": "\\b0b[01_]+([ui](8|16|32|64|128|s|size))?\\b"
+        },
+        {
+            "comment": "Boolean constant",
+            "name": "constant.language.boolean.reproto",
+            "match": "\\b(true|false)\\b"
+        },
+        {
+            "comment": "Keyword",
+            "name": "keyword.other.reproto",
+            "match": "\\b(use|as)\\b"
+        },
+        {
+            "comment": "Type declaration",
+            "begin": "\\b(type|tuple|enum|interface|service)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+            "end": "[\\{\\(;]",
+            "beginCaptures": {
+                "1": {
+                    "name": "storage.type.reproto"
+                },
+                "2": {
+                    "name": "entity.name.type.reproto"
+                }
+            },
+            "patterns": [
+                {
+                    "include": "#block_comment"
+                },
+                {
+                    "include": "#line_comment"
+                }
+            ]
+        }
+    ],
+    "repository": {
+        "block_doc_comment": {
+            "comment": "Block documentation comment",
+            "name": "comment.block.documentation.reproto",
+            "begin": "/\\*[\\*!](?![\\*/])",
+            "end": "\\*/",
+            "patterns": [
+                {
+                    "include": "#block_doc_comment"
+                },
+                {
+                    "include": "#block_comment"
+                }
+            ]
+        },
+        "block_comment": {
+            "comment": "Block comment",
+            "name": "comment.block.reproto",
+            "begin": "/\\*",
+            "end": "\\*/",
+            "patterns": [
+                {
+                    "include": "#block_doc_comment"
+                },
+                {
+                    "include": "#block_comment"
+                }
+            ]
+        },
+        "line_doc_comment": {
+            "comment": "Single-line documentation comment",
+            "name": "comment.line.documentation.reproto",
+            "begin": "//[!/](?=[^/])",
+            "end": "$"
+        },
+        "line_comment": {
+            "comment": "Single-line comment",
+            "name": "comment.line.double-slash.reproto",
+            "begin": "//",
+            "end": "$"
+        },
+        "escaped_character": {
+            "name": "constant.character.escape.reproto",
+            "match": "\\\\(x[0-9A-Fa-f]{2}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.)"
+        },
+        "string_literal": {
+            "comment": "Double-quote string literal",
+            "name": "string.quoted.double.reproto",
+            "begin": "b?\"",
+            "end": "\"",
+            "patterns": [
+                {
+                    "include": "#escaped_character"
+                }
+            ]
+        },
+        "type": {
+            "comment": "A type",
+            "name": "entity.name.type.reproto",
+            "match": "\\b[A-Z][_A-Za-z0-9]*\\b"
+        },
+        "builtin_types": {
+            "comment": "Built-in/core type",
+            "name": "storage.type.core.reproto",
+            "match": "\\b(any|float|double|boolean|string|bytes|datetime|u32|u64|i32|i64)\\b"
+        }
+    }
+}
