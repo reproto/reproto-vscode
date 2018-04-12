@@ -54,6 +54,17 @@ but avoid building large repositories of schemas for now.
 [integration tests]: https://github.com/reproto/reproto/tree/master/it
 [release notes]: https://github.com/reproto/reproto/tree/master/RELEASES.md
 
+## How to use
+
+This extension needs to find a usable `reproto` command, this can be done in one of the following
+ways:
+
+ * `reproto` is in your PATH.
+ * `REPROTO_HOME` is defined, and contains `bin/reproto`.
+ * The `reproto.executable` user options points to a working executable.
+
+Note: you can reload the extension by reloading the Windows.
+
 ## License
 
 Copyright John-John Tedro
