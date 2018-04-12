@@ -13,37 +13,53 @@ interface Range {
     col_end: number;
 }
 
-function detectCandidates(): string[] {
-    const candidates = [];
+function detectCandidates(): [string[], string[]] {
+    const config = vscode.workspace.getConfiguration("reproto");
+
+    const displays: string[] = [];
+    const candidates: string[] = [];
+
+    const executable = config.get<string>("executable");
+
+    if (executable) {
+        displays.push("reproto.executable (user configuration)");
+        candidates.push(executable);
+    } else {
+        displays.push("reproto.executable (user configuration) is not defined");
+    }
 
     if (process.env.REPROTO_HOME) {
+        displays.push("$REPROTO_HOME/.reproto/bin/reproto");
         candidates.push(path.join(process.env.REPROTO_HOME), "bin", "reproto");
+    } else {
+        displays.push("$REPROTO_HOME is not defined");
     }
 
     if (process.env.HOME) {
+        displays.push("$HOME/.reproto/bin/reproto");
         candidates.push(path.join(process.env.HOME, ".reproto", "bin", "reproto"));
+    } else {
+        displays.push("$HOME is not defined");
     }
 
-    return candidates;
+    if (process.env.PATH) {
+        displays.push("$PATH");
+
+        process.env.PATH.split(path.delimiter).forEach((p: string) => {
+            candidates.push(path.join(p, "reproto"));
+        });
+    } else {
+        displays.push("$PATH is not defined");
+    }
+
+    return [displays, candidates];
 }
 
 function detectReproto(candidates: string[]): string | undefined {
-    const config = vscode.workspace.getConfiguration("reproto");
-
-    if (config.has("executable")) {
-        return config.get<string>("executable");
-    }
-
     for (var i = 0; i < candidates.length; i++) {
         var c = candidates[i];
 
-        if (!c) {
-            continue;
-        }
-
-        c = path.join(c, "bin", "reproto");
-
-        if (fs.existsSync(c)) {
+        if (c && fs.existsSync(c)) {
             return c;
         }
     }
@@ -54,13 +70,13 @@ function detectReproto(candidates: string[]): string | undefined {
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-    const candidates = detectCandidates();
+    const [displays, candidates] = detectCandidates();
     const reproto = detectReproto(candidates);
+
+    const out = vscode.window.createOutputChannel("reproto");
 
     if (reproto) {
         console.log(`found reproto: ${reproto}`)
-
-        const out = vscode.window.createOutputChannel("reproto");
 
         var diagnostics = vscode.languages.createDiagnosticCollection("reproto");
 
@@ -135,14 +151,22 @@ export function activate(context: vscode.ExtensionContext) {
         });
 
         context.subscriptions.push(diagnostics);
-        context.subscriptions.push(out);
         context.subscriptions.push(disposable);
 
-        vscode.window.showInformationMessage(`reproto: using ${reproto}`);
+        vscode.window.showInformationMessage(`reproto found: ${reproto}`);
     } else {
-        const display = candidates.join(", ");
-        vscode.window.showErrorMessage(`reproto: command could not be found in any of: ${display}`);
+        vscode.window.showErrorMessage("reproto command could not be found (see console)");
+
+        out.appendLine("reproto command could not be found, we looked in the following places:");
+
+        displays.forEach((d, i)  => {
+            out.appendLine(`#${i}: ${d}`);
+        });
+
+        out.show(true);
     }
+
+    context.subscriptions.push(out);
 }
 
 // this method is called when your extension is deactivated
