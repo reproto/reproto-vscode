@@ -94,7 +94,16 @@ class ReprotoReferenceProvider implements vscode.ReferenceProvider {
     }
 }
 
-class ReprotoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
+class ReprotoDefinitionProvider implements vscode.DefinitionProvider, vscode.TypeDefinitionProvider {
+    /// CTRL+click callback.
+    provideDefinition(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        token: vscode.CancellationToken
+    ): vscode.ProviderResult<vscode.Definition> {
+        return null;
+    }
+
     provideTypeDefinition(
         document: vscode.TextDocument,
         position: vscode.Position,
@@ -335,10 +344,17 @@ export function activate(context: vscode.ExtensionContext) {
                 "reproto",
                 new ReprotoReferenceProvider()));
 
+        let definitionProvider = new ReprotoDefinitionProvider();
+
         context.subscriptions.push(
             vscode.languages.registerTypeDefinitionProvider(
                 "reproto",
-                new ReprotoTypeDefinitionProvider()));
+                definitionProvider));
+
+        context.subscriptions.push(
+            vscode.languages.registerDefinitionProvider(
+                "reproto",
+                definitionProvider));
 
         var symbolProvider = new ReprotoSymbolProvider();
 
@@ -357,9 +373,12 @@ export function activate(context: vscode.ExtensionContext) {
             diagnostics
         );
 
-        context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(e => {
-            builder.rebuild(e.uri);
-        }));
+        context.subscriptions.push(
+            vscode.workspace.onDidSaveTextDocument(e => {
+                builder.rebuild(e.uri);
+            }));
+
+        vscode.languages.registerReferenceProvider
 
         // perform initial build
         for (let workspace of vscode.workspace.workspaceFolders || []) {
