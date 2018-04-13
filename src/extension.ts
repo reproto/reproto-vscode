@@ -67,6 +67,22 @@ function detectReproto(candidates: string[]): string | undefined {
     return undefined;
 }
 
+function findRootPath(uri: vscode.Uri): string | undefined {
+    if (!vscode.workspace.workspaceFolders) {
+        return undefined;
+    }
+
+    for (let entry of vscode.workspace.workspaceFolders) {
+        const p = path.normalize(path.relative(entry.uri.fsPath, uri.fsPath));
+
+        if (p.substring(0, 2) != "..") {
+            return entry.uri.fsPath;
+        }
+    }
+
+    return undefined;
+}
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -106,7 +122,18 @@ export function activate(context: vscode.ExtensionContext) {
                 }
             }
 
-            const rootPath = vscode.workspace.rootPath;
+            const rootPath = findRootPath(e.uri);
+
+            // do nothing
+            if (!rootPath) {
+                vscode.window.showErrorMessage(`could not find a workspace folder for path: ${e.uri}`);
+                return;
+            }
+
+            // no build nanifest in root path.
+            if (!fs.existsSync(path.join(rootPath, "reproto.toml"))) {
+                return;
+            }
 
             const child = spawn(reproto, ["--output-format", "json", "build"], {
                 cwd: rootPath
@@ -136,12 +163,10 @@ export function activate(context: vscode.ExtensionContext) {
                 diagnostics.clear();
 
                 // can only show diagnostics _if_ we have a root path.
-                if (rootPath) {
-                    for (var k in updates) {
-                        const p = path.join(rootPath, k);
-                        const uri = vscode.Uri.file(p);
-                        diagnostics.set(uri, updates[k]);
-                    }
+                for (var k in updates) {
+                    const p = path.join(rootPath, k);
+                    const uri = vscode.Uri.file(p);
+                    diagnostics.set(uri, updates[k]);
                 }
 
                 if (hasError) {
