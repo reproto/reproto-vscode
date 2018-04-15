@@ -20,15 +20,15 @@ function detectCandidates(config: vscode.WorkspaceConfiguration): [string[], str
     }
 
     if (process.env.REPROTO_HOME) {
-        displays.push("$REPROTO_HOME/.reproto/bin/reproto");
-        candidates.push(path.join(process.env.REPROTO_HOME), "bin", "reproto");
+        displays.push("$REPROTO_HOME/reproto");
+        candidates.push(path.join(process.env.REPROTO_HOME), "reproto");
     } else {
         displays.push("$REPROTO_HOME is not defined");
     }
 
     if (process.env.HOME) {
-        displays.push("$HOME/.reproto/bin/reproto");
-        candidates.push(path.join(process.env.HOME, ".reproto", "bin", "reproto"));
+        displays.push("$HOME/.local/bin/reproto");
+        candidates.push(path.join(process.env.HOME, ".local", "bin", "reproto"));
     } else {
         displays.push("$HOME is not defined");
     }
