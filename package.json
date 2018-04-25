@@ -29,8 +29,8 @@
         "json"
     ],
     "activationEvents": [
-        "onLanguage:reproto",
-        "workspaceContains:reproto.toml"
+        "workspaceContains:reproto.toml",
+        "onLanguage:reproto"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -64,12 +64,20 @@
                 },
                 "reproto.type": {
                     "type": "string",
-                    "default": "simple",
                     "enum": [
                         "language-client",
                         "simple"
                     ],
                     "description": "type of integration (\"language-client\" or \"simple\")"
+                },
+                "reproto.debug": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "enable debug logging"
+                },
+                "reproto.log": {
+                    "type": "string",
+                    "description": "when running as a \"language-client\", specify a file to log to"
                 }
             }
         }
