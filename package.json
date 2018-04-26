@@ -30,7 +30,8 @@
     ],
     "activationEvents": [
         "workspaceContains:reproto.toml",
-        "onLanguage:reproto"
+        "onLanguage:reproto",
+        "onCommand:reproto.init"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -80,7 +81,14 @@
                     "description": "when running as a \"language-client\", specify a file to log to"
                 }
             }
-        }
+        },
+        "commands": [
+            {
+                "command": "reproto.init",
+                "title": "initialize a new project",
+                "category": "Reproto"
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
@@ -96,6 +104,7 @@
         "typescript": "^2.6.1",
         "vscode": "^1.1.6",
         "tslint": "^5.8.0",
+        "tar-stream": "^1.5.6",
         "@types/node": "^7.0.43",
         "@types/mocha": "^2.2.42"
     }

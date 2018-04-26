@@ -6,6 +6,7 @@ import { ReprotoSymbolProvider } from './reproto_symbol_provider';
 import * as fs from 'fs';
 import * as path from 'path';
 import { spawn } from 'child_process';
+import { Reproto } from './reproto';
 
 export interface ReprotoRange {
     line_start: number;
@@ -31,13 +32,13 @@ export interface ReprotoSymbol {
 }
 
 export class ReprotoBuilder {
-    reproto: string;
+    reproto: Reproto;
     symbolProvider: ReprotoSymbolProvider;
     out: OutputChannel;
     diagnostics: DiagnosticCollection;
 
     constructor(
-        reproto: string,
+        reproto: Reproto,
         symbolProvider: ReprotoSymbolProvider,
         out: OutputChannel,
         diagnostics: DiagnosticCollection,
@@ -159,7 +160,7 @@ export class ReprotoBuilder {
             }
         }
 
-        const child = spawn(this.reproto, ["--output-format", "json", "build"], {
+        const child = spawn(this.reproto.path, ["--output-format", "json", "build"], {
             cwd: rootPath.uri.fsPath
         });
 
@@ -240,7 +241,7 @@ class ReprotoDefinitionProvider implements DefinitionProvider, TypeDefinitionPro
 
 export function activate(
     cx: ExtensionContext,
-    reproto: string,
+    reproto: Reproto,
     out: OutputChannel
 ) {
     var diagnostics = languages.createDiagnosticCollection("reproto");

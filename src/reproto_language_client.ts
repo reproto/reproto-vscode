@@ -1,10 +1,11 @@
-import { workspace, ExtensionContext, OutputChannel, WorkspaceConfiguration } from 'vscode';
+import { workspace, ExtensionContext, OutputChannel, WorkspaceConfiguration, Uri, window } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient';
+import { Reproto } from './reproto';
 
 export function activate(
 	cx: ExtensionContext,
 	config: WorkspaceConfiguration,
-	reproto: string,
+	reproto: Reproto,
 	out: OutputChannel
 ) {
 	let args = ["language-server"];
@@ -23,7 +24,7 @@ export function activate(
 	}
 
 	let serverOptions: ServerOptions = {
-		command: reproto,
+		command: reproto.path,
 		args: args,
 		options: {
 			env: {
@@ -45,6 +46,17 @@ export function activate(
 		serverOptions,
 		clientOptions
 	);
+
+	client.onReady().then(() => {
+		// open a given test document.
+		client.onNotification("$/openUrl", (u: any) => {
+			let uri = Uri.parse(u);
+
+			workspace.openTextDocument(uri).then(doc => {
+				return window.showTextDocument(doc);
+			});
+		});
+	});
 
 	cx.subscriptions.push(client.start());
 }

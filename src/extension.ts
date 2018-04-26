@@ -4,8 +4,9 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as simple from './reproto_simple';
-import * as language_client from './reproto_language_client';
-import { execSync } from 'child_process';
+import * as languageClient from './reproto_language_client';
+import * as install from './install';
+import { Reproto } from './reproto';
 
 function detectCandidates(config: vscode.WorkspaceConfiguration): [string[], string[]] {
     const displays: string[] = [];
@@ -47,12 +48,12 @@ function detectCandidates(config: vscode.WorkspaceConfiguration): [string[], str
     return [displays, candidates];
 }
 
-function detectReproto(candidates: string[]): string | undefined {
+function detectReproto(candidates: string[]): Reproto | undefined {
     for (var i = 0; i < candidates.length; i++) {
         var c = candidates[i];
 
         if (c && fs.existsSync(c)) {
-            return c;
+            return new Reproto(c, vscode.workspace.rootPath);
         }
     }
 
@@ -62,14 +63,12 @@ function detectReproto(candidates: string[]): string | undefined {
 /**
  * Try to determine the version of reproto.
  */
-function detectVersion(
+async function detectVersion(
     out: vscode.OutputChannel,
-    reproto: string
-): [number, number, number] | null {
-    const command = `${reproto} --version`;
-
+    reproto: Reproto
+): Promise<[number, number, number] | null> {
     try {
-        var output = execSync(command).toString().trim();
+        var output = await reproto.version();
 
         const p = output.split(/[ \t]+/);
 
@@ -81,12 +80,12 @@ function detectVersion(
                 const minor = parseInt(c[1]);
                 const patch = parseInt(c[2]);
 
-                out.appendLine(`${reproto}: detected version: major: ${major}, minor: ${minor}, patch: ${patch}`);
+                out.appendLine(`detected \`${reproto}\` version: ${major}.${minor}.${patch}`);
                 return [major, minor, patch];
             }
         }
     } catch (e) {
-        out.appendLine(`failed to detect version: ${command}:`)
+        out.appendLine(`failed to detect version: ${reproto}:`)
         out.appendLine(e.toString());
         out.show(true);
     }
@@ -117,48 +116,87 @@ function defaultExtensionType(
     return defaultType;
 }
 
-export function activate(context: vscode.ExtensionContext) {
+async function internalActivate(
+    context: vscode.ExtensionContext,
+    out: vscode.OutputChannel
+): Promise<void> {
     const config = vscode.workspace.getConfiguration("reproto");
 
     const [displays, candidates] = detectCandidates(config);
     const reproto = detectReproto(candidates);
 
-    const out = vscode.window.createOutputChannel("reproto extension");
-
-    let type = config.get<string>("type");
-
     if (reproto) {
-        console.log(`found reproto: ${reproto}`)
+        const version = await detectVersion(out, reproto);
 
-        const version = detectVersion(out, reproto);
-        var actualType = type || defaultExtensionType(out, version, "simple");
+        if (version) {
+            let type = config.get<string>("type");
+            let [major, minor, patch] = version;
 
-        switch (actualType) {
-            case "language-client":
-                language_client.activate(context, config, reproto, out);
-                break;
-            case "simple":
-                simple.activate(context, reproto, out);
-                break;
-            default:
-                vscode.window.showErrorMessage(`unsupported extension kind: ${actualType}`);
-                return;
+            out.appendLine(`using reproto from \`${reproto}\``)
+            var actualType = type || defaultExtensionType(out, version, "simple");
+
+            let item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+            item.text = `reproto ${major}.${minor}.${patch} (${actualType})`;
+            item.show();
+
+            context.subscriptions.push(item);
+
+            switch (actualType) {
+                case "language-client":
+                    languageClient.activate(context, config, reproto, out);
+                    break;
+                case "simple":
+                    simple.activate(context, reproto, out);
+                    break;
+                default:
+                    vscode.window.showErrorMessage(`unsupported extension kind: ${actualType}`);
+                    break;
+            }
+
+            context.subscriptions.push(vscode.commands.registerCommand("reproto.init", () => {
+                out.appendLine("Command: Initializing new project");
+
+                return reproto.init(out).then(() => {
+                    vscode.window.showInformationMessage("Project Initialized");
+                }).catch(e => {
+                    vscode.window.showErrorMessage(`Failed to initialize project: ${e}`);
+                });
+            }));
+
+            return;
         }
-
-        vscode.window.showInformationMessage(`configured reproto: ${actualType}`);
-    } else {
-        vscode.window.showErrorMessage("reproto command could not be found (see console)");
-
-        out.appendLine("reproto command could not be found, we looked in the following places:");
-
-        displays.forEach((d, i) => {
-            out.appendLine(`#${i}: ${d}`);
-        });
-
-        out.show(true);
     }
 
+    out.appendLine("usable `reproto` command could not be found!")
+    out.appendLine("looked in the following places:");
+
+    displays.forEach((d, i) => {
+        out.appendLine(`#${i}: ${d}`);
+    });
+
+    out.show(true);
+
+    // attempt to install
+    let action = await vscode.window.showErrorMessage(
+        "Usable `reproto` command could not be found!",
+        "Do nothing",
+        "Install reproto"
+    );
+
+    if (action != "Install reproto") {
+        return;
+    }
+
+    install.install(out).then(() => {
+        out.appendLine("reactivating extension");
+        internalActivate(context, out);
+    });
+}
+
+export function activate(context: vscode.ExtensionContext) {
+    const out = vscode.window.createOutputChannel("reproto extension");
     context.subscriptions.push(out);
+    internalActivate(context, out);
 }
 
 // this method is called when your extension is deactivated
