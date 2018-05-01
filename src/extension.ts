@@ -12,6 +12,9 @@ function detectCandidates(config: vscode.WorkspaceConfiguration): [string[], str
     const displays: string[] = [];
     const candidates: string[] = [];
 
+    const platform = install.getPlatform();
+    const exe = install.getExe(platform);
+
     const executable = config.get<string>("executable");
 
     if (executable) {
@@ -23,23 +26,30 @@ function detectCandidates(config: vscode.WorkspaceConfiguration): [string[], str
 
     if (process.env.REPROTO_HOME) {
         displays.push("$REPROTO_HOME/reproto");
-        candidates.push(path.join(process.env.REPROTO_HOME), "reproto");
+        candidates.push(path.join(process.env.REPROTO_HOME), exe);
     } else {
         displays.push("$REPROTO_HOME is not defined");
     }
 
     if (process.env.HOME) {
         displays.push("$HOME/.local/bin/reproto");
-        candidates.push(path.join(process.env.HOME, ".local", "bin", "reproto"));
+        candidates.push(path.join(process.env.HOME, ".local", "bin", exe));
     } else {
         displays.push("$HOME is not defined");
+    }
+
+    if (process.env.USERPROFILE) {
+        displays.push("$USERPROFILE/.local/bin/reproto");
+        candidates.push(path.join(process.env.USERPROFILE, ".local", "bin", exe));
+    } else {
+        displays.push("$USERPROFILE is not defined");
     }
 
     if (process.env.PATH) {
         displays.push("$PATH");
 
         process.env.PATH.split(path.delimiter).forEach((p: string) => {
-            candidates.push(path.join(p, "reproto"));
+            candidates.push(path.join(p, exe));
         });
     } else {
         displays.push("$PATH is not defined");
@@ -190,6 +200,8 @@ async function internalActivate(
     install.install(out).then(() => {
         out.appendLine("reactivating extension");
         internalActivate(context, out);
+    }).catch(e => {
+        vscode.window.showErrorMessage(e.toString());
     });
 }
 

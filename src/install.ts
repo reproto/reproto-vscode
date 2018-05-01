@@ -8,7 +8,7 @@ const tar = require('tar-stream');
 const HOST = "storage.googleapis.com";
 const BASE_PATH = "reproto-releases"
 
-function getPlatform(): string {
+export function getPlatform(): string {
     switch (process.platform) {
         case "linux":
             return "linux";
@@ -30,7 +30,7 @@ function getArch(): string {
     }
 }
 
-function getExe(platform: string) {
+export function getExe(platform: string) {
     switch (platform) {
         case "windows":
             return "reproto.exe";
@@ -94,13 +94,30 @@ function makeDirs(test: string) {
 }
 
 /**
+ * Find the user's home directory.
+ */
+function findHome(): string | null {
+    // Linux, MacOS, but also Windows if defined.
+    if (process.env.HOME) {
+        return process.env.HOME;
+    }
+
+    // Windows
+    if (process.env.USERPROFILE) {
+        return process.env.USERPROFILE;
+    }
+
+    return null;
+}
+
+/**
  * Install reproto.
  */
 export async function install(out: vscode.OutputChannel): Promise<void> {
-    const home = process.env.HOME;
+    const home = findHome();
 
     if (!home) {
-        throw new Error("HOME: not an environment variable");
+        throw new Error("Could not find home directory for current user");
     }
 
     const dataHome = process.env.XDG_DATA_HOME || path.join(home, ".local", "share");
