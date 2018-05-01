@@ -34,7 +34,10 @@ export function activate(
 	};
 
 	let clientOptions: LanguageClientOptions = {
-		documentSelector: ['reproto'],
+		documentSelector: [
+			{ language: 'toml', pattern: '**/reproto.toml' },
+			{ language: 'reproto' }
+		],
 		synchronize: {
 			configurationSection: 'reproto',
 			fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
