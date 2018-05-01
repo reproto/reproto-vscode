@@ -2,7 +2,7 @@
     "name": "reproto",
     "displayName": "reproto",
     "description": "Language support for reproto",
-    "version": "0.3.3",
+    "version": "0.3.4",
     "license": "MIT",
     "publisher": "udoprog",
     "icon": "icon.png",
