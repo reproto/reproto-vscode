@@ -6,7 +6,7 @@ import * as zlib from 'zlib';
 const tar = require('tar-stream');
 
 const HOST = "storage.googleapis.com";
-const BASE_PATH = "reproto-releases"
+const BASE_PATH = "reproto-releases";
 
 export function getPlatform(): string {
     switch (process.platform) {
@@ -35,13 +35,13 @@ export function getExe(platform: string) {
         case "windows":
             return "reproto.exe";
         default:
-           return "reproto";
+            return "reproto";
     }
 }
 
-function get(path: string): Thenable<string> {
+function get(path: string): Promise<string> {
     return new Promise((resolve, reject) => {
-        https.get({host: HOST, path: path}, function(response) {
+        https.get({ host: HOST, path: path }, function(response) {
             var body = '';
 
             response.on('data', (d) => {
@@ -70,7 +70,7 @@ async function getVersion(): Promise<string> {
 }
 
 function makeDirs(test: string) {
-    let queue = [];
+    const queue = [];
     let p = test;
 
     while (true) {
@@ -88,7 +88,7 @@ function makeDirs(test: string) {
 
     queue.reverse();
 
-    for (let v of queue) {
+    for (const v of queue) {
         fs.mkdirSync(v);
     }
 }
@@ -141,21 +141,21 @@ export async function install(out: vscode.OutputChannel): Promise<void> {
     makeDirs(binHome);
 
     if (!fs.existsSync(archive)) {
-        out.appendLine(`install: downloading: ${archive}`)
+        out.appendLine(`install: downloading: ${archive}`);
 
         await new Promise((resolve, reject) => {
-            https.get({host: HOST, path: `/${BASE_PATH}/${versioned}.tar.gz`}, response => {
+            https.get({ host: HOST, path: `/${BASE_PATH}/${versioned}.tar.gz` }, response => {
                 if (!response.statusCode) {
                     reject(new Error(`no status code in response`));
                     return;
                 }
 
-                if (response.statusCode / 100 != 2) {
+                if (response.statusCode / 100 !== 2) {
                     reject(new Error(`bad status code: ${response.statusCode}`));
                     return;
                 }
 
-                let w = response.pipe(fs.createWriteStream(archive));
+                const w = response.pipe(fs.createWriteStream(archive));
 
                 w.on('finish', resolve);
                 w.on('error', reject);
@@ -164,32 +164,32 @@ export async function install(out: vscode.OutputChannel): Promise<void> {
     }
 
     if (!fs.existsSync(bin)) {
-        out.appendLine(`install: extracting: ${bin}`)
+        out.appendLine(`install: extracting: ${bin}`);
 
         var read = fs.createReadStream(archive);
 
         await new Promise((resolve, reject) => {
-            var extract = tar.extract()
+            var extract = tar.extract();
 
             extract.on('entry', (header: any, stream: fs.ReadStream, next: any) => {
-                if (header.name != exe) {
+                if (header.name !== exe) {
                     throw new Error(`rogue file in archive: ${header.name}`);
                 }
 
                 var binStream = fs.createWriteStream(bin);
-        
-                let w = stream.pipe(binStream);
+
+                const w = stream.pipe(binStream);
 
                 w.on('finish', () => {
                     binStream.close();
                     out.appendLine(`Wrote binary: ${bin}`);
-                    next()
+                    next();
                 });
-        
+
                 stream.resume();
             });
-        
-            let w = read.pipe(zlib.createGunzip()).pipe(extract);
+
+            const w = read.pipe(zlib.createGunzip()).pipe(extract);
 
             w.on('finish', resolve);
             w.on('error', reject);
@@ -197,5 +197,5 @@ export async function install(out: vscode.OutputChannel): Promise<void> {
     }
 
     fs.chmodSync(bin, 0o755);
-    out.appendLine(`install: done!`)
+    out.appendLine(`install: done!`);
 }

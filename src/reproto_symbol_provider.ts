@@ -11,22 +11,22 @@ export class ReprotoSymbolProvider implements DocumentSymbolProvider, WorkspaceS
 
     provideDocumentSymbols(
         document: TextDocument,
-        token: CancellationToken
+        _token: CancellationToken
     ): ProviderResult<SymbolInformation[]> {
         return this.byUri[document.uri.toString()] || [];
     }
 
     provideWorkspaceSymbols(
         query: string,
-        token: CancellationToken
+        _token: CancellationToken
     ): ProviderResult<SymbolInformation[]> {
-        let out: SymbolInformation[] = [];
+        const out: SymbolInformation[] = [];
 
         const q = query.toLowerCase();
 
-        for (let k in this.symbols) {
-            for (let s of this.symbols[k]) {
-                if (s.name.toLowerCase().indexOf(q) != -1) {
+        for (const k in this.symbols) {
+            for (const s of this.symbols[k]) {
+                if (s.name.toLowerCase().indexOf(q) !== -1) {
                     out.push(s);
                     continue;
                 }

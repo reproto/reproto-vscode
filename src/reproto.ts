@@ -20,17 +20,17 @@ export class Reproto {
         out.show();
 
         return new Promise((resolve, reject) => {
-            let opts: ExecFileOptions = { cwd: this.rootPath };
+            const opts: ExecFileOptions = { cwd: this.rootPath };
 
-            let c = spawn(this.path, args, opts);
+            const c = spawn(this.path, args, opts);
 
             let buffer = "";
 
-            c.stdout.on("data", data => {
+            c.stdout.on("data", (data: string) => {
                 buffer += data;
 
                 while (true) {
-                    let index = buffer.indexOf('\n');
+                    const index = buffer.indexOf('\n');
 
                     if (index < 0) {
                         break;
@@ -51,7 +51,7 @@ export class Reproto {
             });
 
             c.on('json', (json: any) => {
-                if (json["type"] == "log") {
+                if (json["type"] === "log") {
                     out.appendLine(json["level"] + ": " + json["message"]);
                 }
             });
@@ -59,8 +59,8 @@ export class Reproto {
             c.on("error", reject);
 
             c.on("close", (code) => {
-                if (code != 0) {
-                    reject(new Error(`command exited with non-zero exit status: ${code}`))
+                if (code !== 0) {
+                    reject(new Error(`command exited with non-zero exit status: ${code}`));
                 } else {
                     if (out) {
                         resolve();
@@ -79,20 +79,20 @@ export class Reproto {
      */
     private execute(args: string[]): Promise<string> {
         return new Promise((resolve, reject) => {
-            let opts: ExecFileOptions = { cwd: this.rootPath };
+            const opts: ExecFileOptions = { cwd: this.rootPath };
 
-            let c = spawn(this.path, args, opts);
+            const c = spawn(this.path, args, opts);
 
             let buffer = "";
 
-            c.stdout.on("data", data => {
+            c.stdout.on("data", (data: string) => {
                 buffer += data;
                 c.emit("buffer");
             });
 
-            c.on("close", (code) => {
-                if (code != 0) {
-                    reject(new Error(`command exited with non-zero exit status: ${code}`))
+            c.on("close", (code: number) => {
+                if (code !== 0) {
+                    reject(new Error(`command exited with non-zero exit status: ${code}`));
                 } else {
                     resolve(buffer);
                 }

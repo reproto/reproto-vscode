@@ -63,7 +63,7 @@ ways:
  * `REPROTO_HOME` is defined, and contains `bin/reproto`.
  * The `reproto.executable` user options points to a working executable.
 
-Note: you can reload the extension by reloading the Windows.
+Note: you can reload the extension by reloading the vscode window.
 
 ## License
 

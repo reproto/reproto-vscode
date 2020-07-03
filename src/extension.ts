@@ -3,7 +3,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as simple from './reproto_simple';
 import * as languageClient from './reproto_language_client';
 import * as install from './install';
 import { Reproto } from './reproto';
@@ -82,7 +81,7 @@ async function detectVersion(
 
         const p = output.split(/[ \t]+/);
 
-        if (p.length >= 2 && p[0] == "reproto") {
+        if (p.length >= 2 && p[0] === "reproto") {
             const c = p[1].split(/[\.-]/);
 
             if (c.length >= 3) {
@@ -95,35 +94,12 @@ async function detectVersion(
             }
         }
     } catch (e) {
-        out.appendLine(`failed to detect version: ${reproto}:`)
+        out.appendLine(`failed to detect version: ${reproto}:`);
         out.appendLine(e.toString());
         out.show(true);
     }
 
     return null;
-}
-
-/**
- * Use detected version to determine which extension typoe to use.
- */
-function defaultExtensionType(
-    out: vscode.OutputChannel,
-    version: [number, number, number] | null,
-    defaultType: string,
-): string {
-    if (!version) {
-        out.appendLine(`no version detected, falling back to default extension type: ${defaultType}`);
-        out.show(true);
-        return defaultType;
-    }
-
-    let [major, minor, patch] = version;
-
-    if (major >= 0 && minor >= 3 && patch >= 35) {
-        return "language-client";
-    }
-
-    return defaultType;
 }
 
 async function internalActivate(
@@ -139,29 +115,16 @@ async function internalActivate(
         const version = await detectVersion(out, reproto);
 
         if (version) {
-            let type = config.get<string>("type");
-            let [major, minor, patch] = version;
+            const [major, minor, patch] = version;
 
-            out.appendLine(`using reproto from \`${reproto}\``)
-            var actualType = type || defaultExtensionType(out, version, "simple");
+            out.appendLine(`using reproto from \`${reproto}\``);
 
-            let item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-            item.text = `reproto ${major}.${minor}.${patch} (${actualType})`;
+            const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+            item.text = `reproto ${major}.${minor}.${patch}`;
             item.show();
 
             context.subscriptions.push(item);
-
-            switch (actualType) {
-                case "language-client":
-                    languageClient.activate(context, config, reproto, out);
-                    break;
-                case "simple":
-                    simple.activate(context, reproto, out);
-                    break;
-                default:
-                    vscode.window.showErrorMessage(`unsupported extension kind: ${actualType}`);
-                    break;
-            }
+            languageClient.activate(context, config, reproto, out);
 
             context.subscriptions.push(vscode.commands.registerCommand("reproto.init", () => {
                 out.appendLine("Command: Initializing new project");
@@ -177,7 +140,7 @@ async function internalActivate(
         }
     }
 
-    out.appendLine("usable `reproto` command could not be found!")
+    out.appendLine("usable `reproto` command could not be found!");
     out.appendLine("looked in the following places:");
 
     displays.forEach((d, i) => {
@@ -187,13 +150,13 @@ async function internalActivate(
     out.show(true);
 
     // attempt to install
-    let action = await vscode.window.showErrorMessage(
+    const action = await vscode.window.showErrorMessage(
         "Usable `reproto` command could not be found!",
         "Do nothing",
         "Install reproto"
     );
 
-    if (action != "Install reproto") {
+    if (action !== "Install reproto") {
         return;
     }
 
